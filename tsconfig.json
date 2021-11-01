@@ -1,0 +1,18 @@
+{
+  "extends": "@tsconfig/node14",
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "target": "es2020",
+    "module": "commonjs",
+    "declaration": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noEmitOnError": true,
+    "strictNullChecks": true,
+    "types": ["node"],
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts"]
+}
