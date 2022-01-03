@@ -52,6 +52,10 @@ export class HttpResponse {
     delete this._headers[name.toLowerCase()];
   }
 
+  get cookies(): Cookie[] {
+    return Object.values(this._cookies);
+  }
+
   setCookie(cookie: Cookie): void;
   setCookie(name: string, value: string, options?: CookieOptions): void;
   setCookie(cookieOrName: Cookie | string, maybeValue?: string, maybeOptions?: CookieOptions): void {
@@ -62,12 +66,10 @@ export class HttpResponse {
     }
   }
 
-  normalize(): void {
-    this.addHeader('Set-Cookie', Object.values(this._cookies).map(cookie => cookie.toString()));
-  }
-
   async send(serverResponse: ServerResponse): Promise<void> {
     serverResponse.statusCode = this.status;
+
+    this.addHeader('Set-Cookie', this.cookies.map(cookie => cookie.toString()));
 
     for (const [header, values] of Object.entries(this._headers)) {
       serverResponse.setHeader(header, values);
