@@ -2,6 +2,7 @@ import { Server, IncomingMessage, ServerResponse, createServer } from 'http';
 import { Socket } from 'net';
 import { Duplex } from 'stream';
 import { AsyncEvent, AsyncEventEmitter } from './events';
+import { HttpResponse } from './httpResponse';
 import { HttpForcedResponse } from './utils';
 import { HttpRequest } from './httpRequest';
 import { Router } from './routing';
@@ -41,24 +42,25 @@ export class HttpServer extends AsyncEventEmitter {
   }
 
   protected async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    try {
-      const request = new HttpRequest(req);
+    const request = new HttpRequest(req);
 
+    try {
       await this.emitAsync('request', request);
 
-      const response = await this.router.route(request);
+      const [handler, params] = await this.router.route(request);
+      const response = await handler.handle(request, params);
+      this.emit('response', response, request);
       await response.send(res);
     } catch (e) {
       if (res.headersSent) {
         throw e;
       }
 
-      if (e instanceof HttpForcedResponse) {
-        await e.response.send(res);
-      } else {
-        res.statusCode = 500;
-        await new Promise((r) => res.end(r));
-      }
+      this.emit('request-error', request, e);
+
+      const response = e instanceof HttpForcedResponse ? e.response : new HttpResponse(500);
+      this.emit('response', response, request);
+      await response.send(res);
     }
   }
 }
@@ -118,6 +120,24 @@ export interface HttpServer {
   prependListener(eventName: 'request', listener: (req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
   prependOnceListener(eventName: 'request', listener: (req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
 
+  emit(event: 'response', res: HttpResponse, req: HttpRequest): boolean;
+  on(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
+  once(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
+  off(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
+  addListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
+  removeListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
+  prependListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
+  prependOnceListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
+
+  emit(event: 'request-error', req: HttpRequest, err: Error): boolean;
+  on(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
+  once(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
+  off(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
+  addListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
+  removeListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
+  prependListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
+  prependOnceListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
+
   emitAsync(event: 'upgrade', req: HttpRequest, socket: Duplex, head: Buffer): Promise<boolean>;
   on(eventName: 'upgrade', listener: (req: HttpRequest, socket: Duplex, head: Buffer, evt: AsyncEvent) => Promise<void> | void): this;
   once(eventName: 'upgrade', listener: (req: HttpRequest, socket: Duplex, head: Buffer, evt: AsyncEvent) => Promise<void> | void): this;
@@ -127,9 +147,9 @@ export interface HttpServer {
   prependListener(eventName: 'upgrade', listener: (req: HttpRequest, socket: Duplex, head: Buffer, evt: AsyncEvent) => Promise<void> | void): this;
   prependOnceListener(eventName: 'upgrade', listener: (req: HttpRequest, socket: Duplex, head: Buffer, evt: AsyncEvent) => Promise<void> | void): this;
 
-  removeAllListeners(event?: string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'upgrade'): this;
-  listeners(eventName: string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'upgrade'): Function[];
-  rawListeners(eventName: string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'upgrade'): Function[];
-  listenerCount(eventName: string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'upgrade'): number;
-  eventNames(): (string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'upgrade')[];
+  removeAllListeners(event?: string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'response' | 'request-error' | 'upgrade'): this;
+  listeners(eventName: string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'response' | 'request-error' | 'upgrade'): Function[];
+  rawListeners(eventName: string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'response' | 'request-error' | 'upgrade'): Function[];
+  listenerCount(eventName: string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'response' | 'request-error' | 'upgrade'): number;
+  eventNames(): (string | symbol | 'close' | 'connection' | 'error' | 'listening' | 'request' | 'response' | 'request-error' | 'upgrade')[];
 }

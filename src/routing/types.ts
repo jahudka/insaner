@@ -5,8 +5,14 @@ export interface Route<T = any> {
   match(request: HttpRequest): Promise<T | false> | T | false;
 }
 
-export type RequestHandler<T = any> = {
+export interface RequestHandler<T = any> {
+  handle(request: HttpRequest, params: T): Promise<HttpResponse> | HttpResponse;
+}
+
+export type RequestCallback<T = any> = {
   (request: HttpRequest, params: T): Promise<HttpResponse> | HttpResponse;
 };
 
-export type SimpleRequestHandler = RequestHandler<Record<string, string>>;
+export type Handler<T = any> = RequestHandler<T> | RequestCallback<T>;
+
+export type SimpleHandler = Handler<Record<string, string>>;

@@ -3,13 +3,13 @@ import { Cookie } from '../utils';
 import { HttpResponse } from '../httpResponse';
 
 export class TextResponse extends HttpResponse {
-  private readonly content: string;
+  readonly content: string;
 
   constructor(
     content: string,
-    status: number = 200,
-    headers: Record<string, string | string[]> = {},
-    cookies: Cookie[] = [],
+    status?: number,
+    headers?: Record<string, string | string[]>,
+    cookies?: Cookie[],
   ) {
     super(status, headers, cookies);
     this.content = content;

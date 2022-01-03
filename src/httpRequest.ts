@@ -5,7 +5,6 @@ import { StreamBuffer } from './utils';
 
 export class HttpRequest {
   private _method?: string;
-  private _url?: URL;
   private _cookies?: Record<string, string>;
   private _body?: Promise<string>;
 
@@ -20,15 +19,11 @@ export class HttpRequest {
   }
 
   get url(): URL {
-    if (!this._url) {
-      this._url = new URL(this.raw.url || '/', `http://${this.raw.headers.host || 'localhost'}`);
-    }
-
-    return this._url;
+    return new URL(this.raw.url || '/', `http://${this.raw.headers.host || 'localhost'}`);
   }
 
   get headers(): IncomingHttpHeaders {
-    return this.raw.headers;
+    return { ...this.raw.headers };
   }
 
   get cookies(): Record<string, string> {
@@ -40,7 +35,7 @@ export class HttpRequest {
         const m = cookie.match(/^(.+?)\s*=\s*(.*)$/);
 
         if (m) {
-          this.cookies[m[1]] = decodeURIComponent(m[2]);
+          this._cookies[m[1]] = decodeURIComponent(m[2]);
         }
       }
     }
