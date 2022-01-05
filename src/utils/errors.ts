@@ -14,7 +14,7 @@ export class HttpForcedResponse extends Error {
 
 export class HttpRedirect extends HttpForcedResponse {
   constructor(location: string, status: number = 302) {
-    super(new RedirectResponse(location, status));
+    super(new RedirectResponse(status, location));
   }
 }
 
