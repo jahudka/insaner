@@ -49,7 +49,9 @@ export class HttpServer extends AsyncEventEmitter {
 
       const [handler, params] = await this.router.route(request);
       const response = await handler.handle(request, params);
-      this.emit('response', response, request);
+
+      await this.emitAsync('response', response, request);
+
       await response.send(res);
     } catch (e) {
       if (res.headersSent) {
@@ -59,7 +61,7 @@ export class HttpServer extends AsyncEventEmitter {
       this.emit('request-error', request, e);
 
       const response = e instanceof HttpForcedResponse ? e.response : new HttpResponse(500);
-      this.emit('response', response, request);
+      await this.emitAsync('response', response, request);
       await response.send(res);
     }
   }
@@ -120,14 +122,14 @@ export interface HttpServer {
   prependListener(eventName: 'request', listener: (req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
   prependOnceListener(eventName: 'request', listener: (req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
 
-  emit(event: 'response', res: HttpResponse, req: HttpRequest): boolean;
-  on(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
-  once(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
-  off(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
-  addListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
-  removeListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
-  prependListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
-  prependOnceListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest) => void): this;
+  emitAsync(event: 'response', res: HttpResponse, req: HttpRequest): Promise<boolean>;
+  on(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
+  once(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
+  off(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
+  addListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
+  removeListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
+  prependListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
+  prependOnceListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
 
   emit(event: 'request-error', req: HttpRequest, err: Error): boolean;
   on(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
