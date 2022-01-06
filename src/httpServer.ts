@@ -3,18 +3,25 @@ import { Socket } from 'net';
 import { Duplex } from 'stream';
 import { AsyncEvent, AsyncEventEmitter } from './events';
 import { HttpResponse } from './httpResponse';
+import { MiddlewareHandler, MiddlewareNext } from './types';
 import { HttpForcedResponse } from './utils';
 import { HttpRequest } from './httpRequest';
 import { Router } from './routing';
 
 export class HttpServer extends AsyncEventEmitter {
   private readonly server: Server;
+  private readonly middlewares: MiddlewareHandler[];
   readonly router: Router;
 
   constructor(router: Router = new Router()) {
     super();
     this.server = createServer();
+    this.middlewares = [];
     this.router = router;
+  }
+
+  registerMiddleware(middleware: MiddlewareHandler): void {
+    this.middlewares.push(middleware);
   }
 
   async listen(port: number | string): Promise<void> {
@@ -41,7 +48,18 @@ export class HttpServer extends AsyncEventEmitter {
     });
   }
 
-  protected async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const chain = this.createMiddlewareChain(async () => this.processRequest(req, res));
+    await chain();
+  }
+
+  private createMiddlewareChain(next: MiddlewareNext): MiddlewareNext {
+    return this.middlewares.reduceRight<MiddlewareNext>((next, mw) => {
+      return async () => mw(next);
+    }, next);
+  }
+
+  protected async processRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const request = new HttpRequest(req);
 
     try {
