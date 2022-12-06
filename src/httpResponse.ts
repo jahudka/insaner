@@ -48,6 +48,10 @@ export class HttpResponse {
     values.push(...(Array.isArray(value) ? value : [value]));
   }
 
+  getHeader(name: string): string[] | undefined {
+    return this._headers[name.toLowerCase()];
+  }
+
   removeHeader(name: string): void {
     delete this._headers[name.toLowerCase()];
   }
@@ -64,6 +68,10 @@ export class HttpResponse {
     } else {
       this._cookies[cookieOrName.name] = cookieOrName;
     }
+  }
+
+  getCookie(name: string): Cookie | undefined {
+    return this._cookies[name];
   }
 
   async send(serverResponse: ServerResponse): Promise<void> {
