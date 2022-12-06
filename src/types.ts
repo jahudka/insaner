@@ -1,5 +1,7 @@
+import { HttpRequest } from './httpRequest';
+
 export type MiddlewareNext = () => Promise<void> | void;
 
 export type MiddlewareHandler = {
-  (next: MiddlewareNext): Promise<void> | void;
+  (request: HttpRequest, next: MiddlewareNext): Promise<void> | void;
 };

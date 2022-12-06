@@ -49,39 +49,42 @@ export class HttpServer extends AsyncEventEmitter {
   }
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    const chain = this.createMiddlewareChain(async () => this.processRequest(req, res));
-    await chain();
-  }
-
-  private createMiddlewareChain(next: MiddlewareNext): MiddlewareNext {
-    return this.middlewares.reduceRight<MiddlewareNext>((next, mw) => {
-      return async () => mw(next);
-    }, next);
-  }
-
-  protected async processRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const request = new HttpRequest(req);
 
+    const chain = this.middlewares.reduceRight<MiddlewareNext>((next, mw) => {
+      return async () => mw(request, next);
+    }, async () => this.processRequest(request));
+
     try {
-      await this.emitAsync('request', request);
-
-      const [handler, params] = await this.router.route(request);
-      const response = await handler.handle(request, params);
-
-      await this.emitAsync('response', response, request);
-
-      await response.send(res);
-    } catch (e) {
-      if (res.headersSent) {
-        throw e;
-      }
-
-      this.emit('request-error', request, e);
-
-      const response = e instanceof HttpForcedResponse ? e.response : new HttpResponse(500);
+      await chain();
+    } catch (e: any) {
+      const response = await this.handleRequestError(request, e);
       await this.emitAsync('response', response, request);
       await response.send(res);
     }
+  }
+
+  protected async processRequest(request: HttpRequest): Promise<void> {
+    await this.emitAsync('request', request);
+    const [handler, params] = await this.router.route(request);
+    const response = await handler.handle(request, params);
+    throw new HttpForcedResponse(response);
+  }
+
+  protected async handleRequestError(request: HttpRequest, error: Error, nested: boolean = false): Promise<HttpResponse> {
+    if (error instanceof HttpForcedResponse) {
+      return error.response;
+    }
+
+    try {
+      await this.emitAsync('request-error', request, error);
+    } catch (e: any) {
+      if (!nested) {
+        return this.handleRequestError(request, e, true);
+      }
+    }
+
+    return new HttpResponse(500);
   }
 }
 
@@ -149,14 +152,14 @@ export interface HttpServer {
   prependListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
   prependOnceListener(eventName: 'response', listener: (res: HttpResponse, req: HttpRequest, evt: AsyncEvent) => Promise<void> | void): this;
 
-  emit(event: 'request-error', req: HttpRequest, err: Error): boolean;
-  on(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
-  once(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
-  off(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
-  addListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
-  removeListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
-  prependListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
-  prependOnceListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error) => void): this;
+  emitAsync(event: 'request-error', req: HttpRequest, err: Error): Promise<boolean>;
+  on(eventName: 'request-error', listener: (req: HttpRequest, err: Error, evt: AsyncEvent) => void): this;
+  once(eventName: 'request-error', listener: (req: HttpRequest, err: Error, evt: AsyncEvent) => Promise<void> | void): this;
+  off(eventName: 'request-error', listener: (req: HttpRequest, err: Error, evt: AsyncEvent) => Promise<void> | void): this;
+  addListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error, evt: AsyncEvent) => Promise<void> | void): this;
+  removeListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error, evt: AsyncEvent) => Promise<void> | void): this;
+  prependListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error, evt: AsyncEvent) => Promise<void> | void): this;
+  prependOnceListener(eventName: 'request-error', listener: (req: HttpRequest, err: Error, evt: AsyncEvent) => Promise<void> | void): this;
 
   emitAsync(event: 'upgrade', req: HttpRequest, socket: Duplex, head: Buffer): Promise<boolean>;
   on(eventName: 'upgrade', listener: (req: HttpRequest, socket: Duplex, head: Buffer, evt: AsyncEvent) => Promise<void> | void): this;
