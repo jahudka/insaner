@@ -21,7 +21,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "graphql": "^16.6.0",
-    "graphql-http": "^1.11.0"
+    "graphql": "^16.6",
+    "graphql-http": "^1.11",
+    "insaner": "^1.3"
   }
 }
