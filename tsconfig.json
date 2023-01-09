@@ -11,8 +11,6 @@
     "noUnusedLocals": true,
     "noEmitOnError": true,
     "strictNullChecks": true,
-    "types": ["node"],
-    "outDir": "dist"
-  },
-  "include": ["src/**/*.ts"]
+    "types": ["node"]
+  }
 }

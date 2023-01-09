@@ -1,5 +1,4 @@
-import { HttpRequest } from '../httpRequest';
-import { Route } from '../routing';
+import { HttpRequest, Route } from 'insaner';
 import { StaticRequestParams } from './types';
 
 export class StaticRoute implements Route<StaticRequestParams> {

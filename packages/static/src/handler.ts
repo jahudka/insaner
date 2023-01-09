@@ -1,11 +1,13 @@
 import { open } from 'fs/promises';
 import { contentType } from 'mime-types';
 import { extname } from 'path';
-import { HttpRequest } from '../httpRequest';
-import { HttpResponse } from '../httpResponse';
-import { FileResponse } from '../responses';
-import { RequestHandler } from '../routing';
-import { HttpNotFoundError } from '../utils';
+import {
+  FileResponse,
+  HttpNotFoundError,
+  HttpRequest,
+  HttpResponse,
+  RequestHandler,
+} from 'insaner';
 import { StaticRequestParams } from './types';
 
 export class StaticHandler implements RequestHandler<StaticRequestParams> {

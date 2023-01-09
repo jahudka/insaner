@@ -1,0 +1,25 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: '14'
+      - name: Upgrade NPM
+        run: npm i -g npm
+      - name: Checkout repository
+        uses: actions/checkout@master
+      - name: Prepare NPM config
+        run: |
+          echo '//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}' > .npmrc
+        env:
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      - name: Build and publish everything
+        run: make
