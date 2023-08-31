@@ -22,6 +22,8 @@ const cors = new CorsHandler({
   methods: true,
   credentials: true, // allow credentials; defaults to false
 });
+
+cors.install(server);
 ```
 
 The `origin`, `headers`, and `methods` options can be specified in a couple of
