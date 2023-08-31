@@ -1,16 +1,14 @@
 {
-  "extends": "@tsconfig/node14",
+  "extends": "@tsconfig/node18",
   "compilerOptions": {
-    "moduleResolution": "node",
-    "target": "es2020",
-    "module": "commonjs",
     "declaration": true,
+    "noEmitOnError": true,
+    "moduleResolution": "NodeNext",
+    "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitAny": true,
     "noUnusedLocals": true,
-    "noEmitOnError": true,
     "strictNullChecks": true,
-    "types": ["node"]
+    "target": "ESNext"
   }
 }

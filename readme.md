@@ -15,11 +15,6 @@ the native NodeJS HTTP server.
    (JSON parsing is done each time you call `req.json()` so that
    you can be sure you get the unmodified data, no matter what
    your middlewares do).
- - While we're at that... **no middlewares**. The HTTP server
-   emits a `request` event which you can listen to, and the
-   implementation will even handle async listeners for that event,
-   so you can hook into request handling before the router is called,
-   but that's it.
  - Also, cookies work out of the box.
  - WebSocket compatible.
  - Typings included.

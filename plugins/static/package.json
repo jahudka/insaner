@@ -1,0 +1,31 @@
+{
+  "name": "@insaner/static",
+  "author": {
+    "name": "Dan Kadera",
+    "email": "me@subsonic.cz",
+    "url": "https://github.com/jahudka"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jahudka/insaner.git",
+    "directory": "plugins/static"
+  },
+  "homepage": "https://github.com/jahudka/insaner",
+  "license": "MIT",
+  "version": "1.4.0",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "insaner": "^1.4",
+    "mime-types": "^2.1"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^2.1"
+  }
+}
