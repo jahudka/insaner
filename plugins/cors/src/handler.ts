@@ -1,4 +1,4 @@
-import { HttpRequest, HttpResponse, HttpServer } from 'insaner';
+import { HttpRequest, HttpResponse, Middleware, MiddlewareNext } from 'insaner';
 import { CorsOptions } from './types';
 
 type NormalizedOptions = {
@@ -9,19 +9,21 @@ type NormalizedOptions = {
   credentials?: boolean;
 };
 
-export class CorsHandler {
+export class CorsMiddleware implements Middleware {
   private readonly options: NormalizedOptions;
 
   constructor(options: CorsOptions = {}) {
     this.options = normalizeOptions(options);
   }
 
-  install(server: HttpServer): void {
-    server.router.options(this.options.route ?? /^/, () => new HttpResponse());
-    server.on('response', this.handleResponse.bind(this));
+  async handle(request: HttpRequest, next: MiddlewareNext): Promise<HttpResponse> {
+    const matchesRoute = this.options.route.test(request.url.pathname);
+    const isOptions = request.method === 'OPTIONS';
+    const response = matchesRoute && isOptions ? new HttpResponse() : await next();
+    return matchesRoute ? this.addHeaders(response, request) : response;
   }
 
-  private handleResponse(response: HttpResponse, request: HttpRequest): void {
+  private addHeaders(response: HttpResponse, request: HttpRequest): HttpResponse {
     const origin = this.options.origin(request.headers.origin);
     const headers = this.options.headers(request.headers['access-control-request-headers']);
     const methods = this.options.methods(request.headers['access-control-request-method']);
@@ -41,6 +43,8 @@ export class CorsHandler {
     if (this.options.credentials) {
       response.setHeader('Access-Control-Allow-Credentials', 'true');
     }
+
+    return response;
   }
 }
 

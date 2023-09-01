@@ -3,14 +3,14 @@ import { Socket } from 'net';
 import { Duplex } from 'stream';
 import { AsyncEvent, AsyncEventEmitter } from './events';
 import { HttpResponse } from './httpResponse';
-import { MiddlewareHandler, MiddlewareNext } from './types';
+import { Middleware, MiddlewareHandler, MiddlewareNext } from './types';
 import { HttpForcedResponse } from './utils';
 import { HttpRequest } from './httpRequest';
 import { Router } from './routing';
 
 export class HttpServer extends AsyncEventEmitter {
   private readonly server: Server;
-  private readonly middlewares: MiddlewareHandler[];
+  private readonly middlewares: Middleware[];
   readonly router: Router;
 
   constructor(router: Router = new Router()) {
@@ -20,14 +20,14 @@ export class HttpServer extends AsyncEventEmitter {
     this.router = router;
   }
 
-  registerMiddleware(middleware: MiddlewareHandler): void {
-    this.middlewares.push(middleware);
+  registerMiddleware(middleware: Middleware | MiddlewareHandler): void {
+    this.middlewares.push(typeof middleware === 'function' ? { handle: middleware } : middleware);
   }
 
   async listen(port: number | string): Promise<void> {
     return new Promise((resolve) => {
+      this.server.on('error', (err) => this.emit('error', err));
       this.server.on('request', (req, res) => this.handleRequest(req, res));
-
       this.server.on('upgrade', async (req, socket, head) => {
         await this.emitAsync('upgrade', new HttpRequest(req), socket, head);
       });
@@ -50,8 +50,38 @@ export class HttpServer extends AsyncEventEmitter {
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const request = new HttpRequest(req);
-    let response = await this.dispatchRequest(request);
+    const response = await this.processRequest(request);
+    await this.sendResponse(response, res, request);
+  }
 
+  private async processRequest(request: HttpRequest): Promise<HttpResponse> {
+    try {
+      await this.emitAsync('request', request);
+
+      const chain = this.middlewares.reduceRight<MiddlewareNext>((next, mw) => async () => {
+        try {
+          return await mw.handle(request, next);
+        } catch (e: any) {
+          return this.checkError(e);
+        }
+      }, () => this.routeRequest(request));
+
+      return await chain();
+    } catch (e: any) {
+      return this.handleRequestError(request, e);
+    }
+  }
+
+  protected async routeRequest(request: HttpRequest): Promise<HttpResponse> {
+    try {
+      const [handler, params] = await this.router.route(request);
+      return await handler.handle(request, params);
+    } catch (e: any) {
+      return this.checkError(e);
+    }
+  }
+
+  private async sendResponse(response: HttpResponse, res: ServerResponse, request: HttpRequest): Promise<void> {
     try {
       await this.emitAsync('response', response, request);
     } catch (e: any) {
@@ -59,7 +89,7 @@ export class HttpServer extends AsyncEventEmitter {
     }
 
     try {
-      await response.send(res);
+      await response.send(res, request);
     } catch {
       if (!res.headersSent) {
         res.statusCode = 500;
@@ -68,23 +98,12 @@ export class HttpServer extends AsyncEventEmitter {
     }
   }
 
-  private async dispatchRequest(request: HttpRequest): Promise<HttpResponse> {
-    try {
-      await this.emitAsync('request', request);
-
-      const chain = this.middlewares.reduceRight<MiddlewareNext>((next, mw) => {
-        return async () => mw(request, next);
-      }, async () => this.processRequest(request));
-
-      return await chain();
-    } catch (e: any) {
-      return this.handleRequestError(request, e);
+  private checkError(error: any): HttpResponse {
+    if (error instanceof HttpForcedResponse) {
+      return error.response;
+    } else {
+      throw error;
     }
-  }
-
-  protected async processRequest(request: HttpRequest): Promise<HttpResponse> {
-    const [handler, params] = await this.router.route(request);
-    return handler.handle(request, params);
   }
 
   protected async handleRequestError(request: HttpRequest, error: Error, nested: boolean = false): Promise<HttpResponse> {

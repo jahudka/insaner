@@ -27,7 +27,7 @@ export class StaticHandler implements RequestHandler<StaticRequestParams> {
       throw new HttpNotFoundError();
     }
 
-    return new FileResponse(request, fullPath, type);
+    return new FileResponse(fullPath, type);
   }
 
   private async resolvePath(path: string = '/'): Promise<string | undefined> {

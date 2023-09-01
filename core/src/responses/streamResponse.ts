@@ -31,4 +31,9 @@ export class StreamResponse extends HttpResponse {
       this.stream.pipe(sink);
     });
   }
+
+  protected async endBody(sink: Writable): Promise<void> {
+    this.stream.destroy();
+    await super.endBody(sink);
+  }
 }

@@ -1,5 +1,6 @@
 import { ServerResponse } from 'http';
 import { Transform, Writable } from 'stream';
+import { HttpRequest } from './httpRequest';
 import { Cookie, CookieOptions } from './utils';
 
 export class HttpResponse {
@@ -41,16 +42,14 @@ export class HttpResponse {
   }
 
   setHeader(name: string, value: string | string[]): void {
-    this._headers[name.toLowerCase()] = Array.isArray(value) ? value : [value];
+    this._headers[name.toLowerCase()] = typeof value === 'string' ? [value] : value;
   }
 
   addHeader(name: string, value: string | string[]): void {
-    if (Array.isArray(value)) {
-      if (!value.length) {
-        return;
-      }
-    } else {
+    if (typeof value === 'string') {
       value = [value];
+    } else if (!value.length) {
+      return;
     }
 
     const header = name.toLowerCase();
@@ -88,7 +87,7 @@ export class HttpResponse {
     this._transforms.push(transform);
   }
 
-  async send(serverResponse: ServerResponse): Promise<void> {
+  async send(serverResponse: ServerResponse, request: HttpRequest): Promise<void> {
     serverResponse.statusCode = this.status;
 
     this.addHeader('Set-Cookie', this.cookies.map(cookie => cookie.toString()));
@@ -103,10 +102,18 @@ export class HttpResponse {
       return transform;
     }, serverResponse);
 
-    await this.writeBody(sink);
+    if (request.method === 'HEAD' || request.method === 'OPTIONS') {
+      await this.endBody(sink);
+    } else {
+      await this.writeBody(sink);
+    }
   }
 
   protected async writeBody(sink: Writable): Promise<void> {
+    return this.endBody(sink);
+  }
+
+  protected async endBody(sink: Writable): Promise<void> {
     return new Promise((resolve) => {
       sink.end(resolve);
     });

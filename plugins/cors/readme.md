@@ -12,24 +12,23 @@ Usage:
 
 ```typescript
 import { HttpServer } from 'insaner';
-import { CorsHandler } from '@insaner/cors';
+import { CorsMiddleware } from '@insaner/cors';
 
 const server = new HttpServer();
-const cors = new CorsHandler({
+
+server.registerMiddleware(new CorsMiddleware({
   route: /^/, // which URLs should be handled; defaults to all URLs
   origin: true,
   headers: true,
   methods: true,
   credentials: true, // allow credentials; defaults to false
-});
-
-cors.install(server);
+}));
 ```
 
 The `origin`, `headers`, and `methods` options can be specified in a couple of
 ways:
- - Not specifying the option means that the corresponding `Access-Control-Allow-*`
-   response header will never be sent.
+ - Not specifying an option (or setting it to `undefined`) means that the
+   corresponding `Access-Control-Allow-*` response header will never be sent.
  - `true` will make the handler echo the corresponding request value back to the
    client, e.g. a request with `Origin: https://example.com` will receive a
    response with `Access-Control-Allow-Origin: https://example.com`.
