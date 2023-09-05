@@ -3,25 +3,42 @@ import { Socket } from 'net';
 import { Duplex } from 'stream';
 import { AsyncEvent, AsyncEventEmitter } from './events';
 import { HttpResponse } from './httpResponse';
-import { Middleware, MiddlewareHandler, MiddlewareNext } from './types';
+import {
+  RequestMiddleware,
+  RequestMiddlewareHandler,
+  RequestMiddlewareNext,
+  ServerMiddleware,
+  ServerMiddlewareHandler,
+  ServerMiddlewareNext,
+} from './types';
 import { HttpForcedResponse } from './utils';
 import { HttpRequest } from './httpRequest';
 import { Router } from './routing';
 
 export class HttpServer extends AsyncEventEmitter {
   private readonly server: Server;
-  private readonly middlewares: Middleware[];
+  private readonly serverMiddlewares: ServerMiddleware[];
+  private readonly requestMiddlewares: RequestMiddleware[];
   readonly router: Router;
 
   constructor(router: Router = new Router()) {
     super();
     this.server = createServer();
-    this.middlewares = [];
+    this.serverMiddlewares = [];
+    this.requestMiddlewares = [];
     this.router = router;
   }
 
-  registerMiddleware(middleware: Middleware | MiddlewareHandler): void {
-    this.middlewares.push(typeof middleware === 'function' ? { handle: middleware } : middleware);
+  registerMiddleware(
+    middleware: ServerMiddleware | ServerMiddlewareHandler | RequestMiddleware | RequestMiddlewareHandler,
+  ): void {
+    const mw = typeof middleware === 'function' ? { handle: middleware } : middleware;
+
+    if (mw.handle.length > 1) {
+      this.requestMiddlewares.push(mw as RequestMiddleware);
+    } else {
+      this.serverMiddlewares.push(mw as ServerMiddleware);
+    }
   }
 
   async listen(port: number | string): Promise<void> {
@@ -49,16 +66,24 @@ export class HttpServer extends AsyncEventEmitter {
   }
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    const request = new HttpRequest(req);
-    const response = await this.processRequest(request);
-    await this.sendResponse(response, res, request);
+    const chain = this.serverMiddlewares.reduceRight<ServerMiddlewareNext>((next, mw) => async () => {
+      try {
+        await mw.handle(next);
+      } catch {}
+    }, async () => {
+      const request = new HttpRequest(req);
+      const response = await this.processRequest(request);
+      await this.sendResponse(response, res, request);
+    });
+
+    await chain();
   }
 
   private async processRequest(request: HttpRequest): Promise<HttpResponse> {
     try {
       await this.emitAsync('request', request);
 
-      const chain = this.middlewares.reduceRight<MiddlewareNext>((next, mw) => async () => {
+      const chain = this.requestMiddlewares.reduceRight<RequestMiddlewareNext>((next, mw) => async () => {
         try {
           return await mw.handle(request, next);
         } catch (e: any) {

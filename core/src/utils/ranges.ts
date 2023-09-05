@@ -2,9 +2,9 @@ import { HttpBadRequestError } from './errors';
 
 export type ByteRange = [start: number, end?: number];
 
-export function parseHttpRange(range?: string): ByteRange[] {
+export function parseHttpRange(range?: string): ByteRange[] | undefined {
   if (range === undefined) {
-    return [];
+    return undefined;
   } else if (!/^bytes=-?\d/.test(range)) {
     throw new HttpBadRequestError(416);
   }

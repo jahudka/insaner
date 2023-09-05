@@ -5,3 +5,4 @@ export * from './fileResponse';
 export * from './redirectResponse';
 export * from './sseResponse';
 export * from './streamResponse';
+export * from './multipartBody';

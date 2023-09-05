@@ -1,2 +1,2 @@
-export * from './handler';
+export * from './cors';
 export * from './types';

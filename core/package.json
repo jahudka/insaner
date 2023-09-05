@@ -12,7 +12,7 @@
   },
   "homepage": "https://github.com/jahudka/insaner",
   "license": "MIT",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "files": [
     "dist"
   ],
@@ -24,9 +24,13 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "dependencies": {
+    "uuid": "^9.0.0"
+  },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.1",
     "@types/node": "^18.15.3",
+    "@types/uuid": "^9.0.3",
     "typescript": "^5.2.2",
     "is-published": "^0.2.0"
   }
