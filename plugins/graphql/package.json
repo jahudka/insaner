@@ -12,7 +12,7 @@
   },
   "homepage": "https://github.com/jahudka/insaner",
   "license": "MIT",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "files": [
     "dist"
   ],
@@ -22,7 +22,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "graphql": "^16.8",
+    "graphql": "^16.8.1",
     "graphql-http": "^1.22",
     "insaner": "^1.4"
   }
