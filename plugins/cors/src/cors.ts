@@ -1,4 +1,4 @@
-import { HttpRequest, HttpResponse, RequestMiddleware, RequestMiddlewareNext } from 'insaner';
+import { HttpRequest, HttpResponse, HttpServer } from 'insaner';
 import { CorsOptions } from './types';
 
 type NormalizedOptions = {
@@ -7,22 +7,32 @@ type NormalizedOptions = {
   headers: (request?: string) => string | undefined;
   methods: (request?: string) => string | undefined;
   credentials?: boolean;
+  maxAge: number;
 };
 
-export class CorsMiddleware implements RequestMiddleware {
+export class Cors {
   private readonly options: NormalizedOptions;
+
+  static install(server: HttpServer, options?: CorsOptions): Cors {
+    const cors = new Cors(options);
+    cors.install(server);
+    return cors;
+  }
 
   constructor(options: CorsOptions = {}) {
     this.options = normalizeOptions(options);
   }
 
-  async handle(request: HttpRequest, next: RequestMiddlewareNext): Promise<HttpResponse> {
-    const matchesRoute = this.options.route.test(request.url.pathname);
-    const response = matchesRoute && request.method === 'OPTIONS' ? new HttpResponse() : await next();
-    return matchesRoute ? this.addHeaders(response, request) : response;
+  install(server: HttpServer): void {
+    server.router.options(this.options.route, () => new HttpResponse());
+    server.addListener('response', (res, req) => this.addHeaders(res, req));
   }
 
-  private addHeaders(response: HttpResponse, request: HttpRequest): HttpResponse {
+  private addHeaders(response: HttpResponse, request: HttpRequest): void {
+    if (this.options.route.test(request.url.pathname)) {
+      return;
+    }
+
     const origin = this.options.origin(request.headers.origin);
     const headers = this.options.headers(request.headers['access-control-request-headers']);
     const methods = this.options.methods(request.headers['access-control-request-method']);
@@ -43,17 +53,27 @@ export class CorsMiddleware implements RequestMiddleware {
       response.setHeader('Access-Control-Allow-Methods', methods);
     }
 
-    return response;
+    if (this.options.maxAge) {
+      response.setHeader('Access-Control-Max-Age', this.options.maxAge.toString());
+    }
   }
 }
 
-function normalizeOptions({ route, origin, headers, methods, credentials }: CorsOptions): NormalizedOptions {
+function normalizeOptions({
+  route = /^/,
+  origin,
+  headers,
+  methods,
+  credentials,
+  maxAge = 600,
+}: CorsOptions): NormalizedOptions {
   return {
-    route: route ?? /^/,
+    route,
     origin: normalizeOption(origin, true),
     headers: normalizeOption(headers),
     methods: normalizeOption(methods),
     credentials,
+    maxAge,
   };
 }
 

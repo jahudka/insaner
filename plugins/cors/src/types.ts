@@ -4,4 +4,5 @@ export type CorsOptions = {
   headers?: RegExp | string | string[] | true;
   methods?: RegExp | string | string[] | true;
   credentials?: boolean;
+  maxAge?: number;
 };

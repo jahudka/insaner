@@ -12,17 +12,22 @@ Usage:
 
 ```typescript
 import { HttpServer } from 'insaner';
-import { CorsMiddleware } from '@insaner/cors';
+import { Cors } from '@insaner/cors';
 
 const server = new HttpServer();
-
-server.registerMiddleware(new CorsMiddleware({
+const cors = new Cors({
   route: /^/, // which URLs should be handled; defaults to all URLs
   origin: true,
   headers: true,
   methods: true,
   credentials: true, // allow credentials; defaults to false
-}));
+  maxAge: 100, // how long should browsers cache preflight results
+});
+
+cors.install(server);
+
+// shorthand:
+Cors.install(server, { ...options });
 ```
 
 The `origin`, `headers`, and `methods` options can be specified in a couple of
