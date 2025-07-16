@@ -1,4 +1,4 @@
-import { HttpRequest, HttpResponse, HttpServer } from 'insaner';
+import { HttpRequest, HttpResponse, HttpServer, RequestMiddlewareNext } from 'insaner';
 import { CorsOptions } from './types';
 
 type NormalizedOptions = {
@@ -24,12 +24,18 @@ export class Cors {
   }
 
   install(server: HttpServer): void {
-    server.router.options(this.options.route, () => new HttpResponse());
+    server.registerMiddleware((request, next) => this.handle(request, next));
     server.addListener('response', (res, req) => this.addHeaders(res, req));
   }
 
+  private async handle(request: HttpRequest, next: RequestMiddlewareNext): Promise<HttpResponse> {
+    return request.method === 'OPTIONS' && this.options.route.test(request.url.pathname)
+      ? new HttpResponse()
+      : next();
+  }
+
   private addHeaders(response: HttpResponse, request: HttpRequest): void {
-    if (this.options.route.test(request.url.pathname)) {
+    if (!this.options.route.test(request.url.pathname)) {
       return;
     }
 
