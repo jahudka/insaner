@@ -1,3 +1,5 @@
 /node_modules/
 /core/dist/
+/core/node_modules/
 /plugins/*/dist/
+/plugins/*/node_modules/
