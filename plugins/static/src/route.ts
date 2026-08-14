@@ -25,9 +25,9 @@ export class StaticRoute implements Route<StaticRequestParams> {
 
 function createPattern(basePath: string): RegExp {
   const prefix = escapeRe(basePath.replace(/^\/|\/$/g, ''));
-  return new RegExp(`^\/?${prefix}(?<path>(?:\/[^.\/][^\/]*)+\/?)?$`);
+  return new RegExp(`^/?${prefix}(?<path>(?:/[^./][^/]*)+/?)?$`);
 }
 
 function escapeRe(s: string): string {
-  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  return s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 }

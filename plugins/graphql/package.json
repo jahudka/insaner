@@ -1,7 +1,10 @@
 {
   "name": "@insaner/graphql",
+  "version": "1.6.0",
+  "homepage": "https://github.com/jahudka/insaner",
+  "license": "MIT",
   "author": {
-    "name": "Dan Kadera",
+    "name": "Eliška Daniela Kaderová",
     "email": "me@subsonic.cz",
     "url": "https://github.com/jahudka"
   },
@@ -10,20 +13,52 @@
     "url": "https://github.com/jahudka/insaner.git",
     "directory": "plugins/graphql"
   },
-  "homepage": "https://github.com/jahudka/insaner",
-  "license": "MIT",
-  "version": "1.5.0",
   "files": [
     "dist"
   ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": {
+        "require": "./dist/index.d.cts",
+        "import": "./dist/index.d.mts"
+      },
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
   "publishConfig": {
     "access": "public"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "scripts": {
+    "cleanup": "rm -rf dist",
+    "oxlint": "oxlint",
+    "oxlint:fix": "oxlint --fix",
+    "oxfmt": "oxfmt --check",
+    "oxfmt:fix": "oxfmt --write",
+    "lint": "pnpm run '/^(oxlint|oxfmt)$/'",
+    "format": "pnpm run --sequential '/^(oxlint|oxfmt):fix$/'",
+    "build": "tsc --noEmit && tsdown",
+    "publint": "publint"
+  },
   "dependencies": {
-    "graphql": "^16.8.1",
-    "graphql-http": "^1.22",
-    "insaner": "^1.4"
-  }
+    "graphql": "^16.14.2",
+    "graphql-http": "^1.23.0",
+    "insaner": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "publint": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "engineStrict": true
 }

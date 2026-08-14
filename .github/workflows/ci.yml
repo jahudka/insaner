@@ -1,8 +1,14 @@
 name: ci
+
 on:
   push:
     branches:
       - main
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   ci:
     name: ci
@@ -11,15 +17,21 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@master
         with:
-          node-version: '18'
-      - name: Upgrade NPM
-        run: npm i -g npm
+          node-version: '24'
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: '11'
+          run_install: false
       - name: Checkout repository
-        uses: actions/checkout@master
-      - name: Prepare NPM config
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > .npmrc
-        env:
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-      - name: Build and publish everything
-        run: make publish
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pnpm ci
+      - name: Lint code
+        run: pnpm -r lint
+      - name: Build packages
+        run: pnpm -r build
+      - name: Lint packages
+        run: pnpm -r publint
+      - name: Publish packages to NPM
+        run: pnpm -r publish --provenance

@@ -21,7 +21,7 @@ export class HttpRequest {
   }
 
   get method(): string {
-    return this._method ??= this.raw.method?.toUpperCase() || 'GET';
+    return (this._method ??= this.raw.method?.toUpperCase() || 'GET');
   }
 
   get url(): URL {
@@ -46,7 +46,7 @@ export class HttpRequest {
       }
     }
 
-    return { ... this._cookies };
+    return { ...this._cookies };
   }
 
   get consumed(): boolean {
@@ -74,7 +74,7 @@ export class HttpRequest {
 
     return this._transforms
       .reduce((source: Readable, sink) => {
-        source.on('error', (e) => sink.emit('error', e))
+        source.on('error', (e) => sink.emit('error', e));
         return source.pipe(sink);
       }, this.raw)
       .pipe(dst);

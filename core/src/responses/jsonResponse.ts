@@ -1,16 +1,12 @@
 import { Writable } from 'stream';
-import { Cookie } from '../utils';
 import { HttpResponse } from '../httpResponse';
+import { Cookie } from '../utils';
 
 export class JsonResponse extends HttpResponse {
   readonly payload: any;
   private readonly pretty: boolean;
 
-  constructor(
-    payload: any,
-    headers?: Record<string, string | string[]>,
-    cookies?: Cookie[],
-  );
+  constructor(payload: any, headers?: Record<string, string | string[]>, cookies?: Cookie[]);
   constructor(
     payload: any,
     pretty: boolean,
@@ -31,12 +27,9 @@ export class JsonResponse extends HttpResponse {
     cookies?: Cookie[],
   );
   constructor(a0: any, b0?: any, c0?: any, d0?: any, e0?: any) {
-    const [status, payload, c1, d1, e1] = typeof a0 === 'number'
-      ? [a0, b0, c0, d0, e0]
-      : [200, a0, b0, c0, d0];
-    const [pretty, headers, cookies] = typeof c1 === 'boolean'
-      ? [c1, d1, e1]
-      : [false, c1, d1];
+    const [status, payload, c1, d1, e1] =
+      typeof a0 === 'number' ? [a0, b0, c0, d0, e0] : [200, a0, b0, c0, d0];
+    const [pretty, headers, cookies] = typeof c1 === 'boolean' ? [c1, d1, e1] : [false, c1, d1];
 
     super(status, headers, cookies);
     this.payload = payload;

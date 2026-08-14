@@ -9,7 +9,14 @@ import {
 } from 'insaner';
 import { GraphQLHandlerOptions, GraphQLMiddleware, GraphQLMiddlewareNext } from './types';
 
-export class GraphQLHandler<Context extends OperationContext = any, Root extends object = any> extends AsyncEventEmitter implements RequestHandler {
+export type GraphQLHandlerEvents = {
+  error: [errors: ReadonlyArray<GraphQLError>];
+};
+
+export class GraphQLHandler<Context extends OperationContext = any, Root extends object = any>
+  extends AsyncEventEmitter<GraphQLHandlerEvents>
+  implements RequestHandler
+{
   private readonly handler: Handler<HttpRequest, Context>;
   private readonly middlewares: GraphQLMiddleware<Context, Root>[] = [];
 
@@ -62,27 +69,10 @@ export class GraphQLHandler<Context extends OperationContext = any, Root extends
   }
 }
 
-export interface GraphQLHandler<Context extends OperationContext = any, Root extends object = any> {
-  emit(eventName: string | symbol, ...args: any[]): boolean;
-  on(eventName: string | symbol, listener: (...args: any[]) => void): this;
-  once(eventName: string | symbol, listener: (...args: any[]) => void): this;
-  off(eventName: string | symbol, listener: (...args: any[]) => void): this;
-  addListener(eventName: string | symbol, listener: (...args: any[]) => void): this;
-  removeListener(eventName: string | symbol, listener: (...args: any[]) => void): this;
-  prependListener(eventName: string | symbol, listener: (...args: any[]) => void): this;
-  prependOnceListener(eventName: string | symbol, listener: (...args: any[]) => void): this;
-
-  emit(event: 'error', errors: ReadonlyArray<GraphQLError>): boolean;
-  on(eventName: 'error', listener: (errors: ReadonlyArray<GraphQLError>) => void): this;
-  once(eventName: 'error', listener: (errors: ReadonlyArray<GraphQLError>) => void): this;
-  off(eventName: 'error', listener: (errors: ReadonlyArray<GraphQLError>) => void): this;
-  addListener(eventName: 'error', listener: (errors: ReadonlyArray<GraphQLError>) => void): this;
-  removeListener(eventName: 'error', listener: (errors: ReadonlyArray<GraphQLError>) => void): this;
-  prependListener(eventName: 'error', listener: (errors: ReadonlyArray<GraphQLError>) => void): this;
-  prependOnceListener(eventName: 'error', listener: (errors: ReadonlyArray<GraphQLError>) => void): this;
-}
-
-function wrapMiddleware(next: GraphQLMiddlewareNext, middleware: GraphQLMiddleware): GraphQLMiddlewareNext {
+function wrapMiddleware(
+  next: GraphQLMiddlewareNext,
+  middleware: GraphQLMiddleware,
+): GraphQLMiddlewareNext {
   return (args) => middleware(args, next);
 }
 

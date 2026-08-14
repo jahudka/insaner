@@ -6,9 +6,8 @@ export class HttpForcedResponse extends Error {
 
   constructor(responseOrStatus: HttpResponse | number) {
     super();
-    this.response = typeof responseOrStatus === 'number'
-      ? new HttpResponse(responseOrStatus)
-      : responseOrStatus;
+    this.response =
+      typeof responseOrStatus === 'number' ? new HttpResponse(responseOrStatus) : responseOrStatus;
   }
 }
 

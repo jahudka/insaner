@@ -1,6 +1,4 @@
 import { open } from 'fs/promises';
-import { contentType } from 'mime-types';
-import { extname } from 'path';
 import {
   FileResponse,
   HttpNotFoundError,
@@ -8,6 +6,8 @@ import {
   HttpResponse,
   RequestHandler,
 } from 'insaner';
+import { contentType } from 'mime-types';
+import { extname } from 'path';
 import { StaticRequestParams } from './types';
 
 export class StaticHandler implements RequestHandler<StaticRequestParams> {
@@ -46,7 +46,9 @@ export class StaticHandler implements RequestHandler<StaticRequestParams> {
         const fp = await open(candidate, 'r');
         await fp.close();
         return candidate;
-      } catch (e) { /* continue */ }
+      } catch {
+        /* continue */
+      }
     }
 
     return undefined;

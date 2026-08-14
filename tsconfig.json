@@ -1,14 +1,11 @@
 {
-  "extends": "@tsconfig/node18",
   "compilerOptions": {
-    "declaration": true,
-    "noEmitOnError": true,
-    "moduleResolution": "NodeNext",
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "strictNullChecks": true,
-    "target": "ESNext"
+    "target": "ES2024",
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ES2024"],
+    "skipLibCheck": true,
+    "types": ["node"],
+    "noEmit": true
   }
 }

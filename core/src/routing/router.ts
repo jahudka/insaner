@@ -1,5 +1,5 @@
-import { HttpNotFoundError } from '../utils';
 import { HttpRequest } from '../httpRequest';
+import { HttpNotFoundError } from '../utils';
 import { SimpleRoute } from './simpleRoute';
 import { Route, Handler, SimpleHandler, RequestHandler } from './types';
 

@@ -37,21 +37,26 @@ class SSETransform extends Transform {
 
 export class SSEResponse extends StreamResponse {
   constructor(
-    stream: AsyncIterable<ServerEvent | string | any> | Iterable<ServerEvent | string | any> | Readable,
+    stream:
+      | AsyncIterable<ServerEvent | string | any>
+      | Iterable<ServerEvent | string | any>
+      | Readable,
     headers?: Record<string, string | string[]>,
     cookies?: Cookie[],
   );
   constructor(
     status: number,
-    stream: AsyncIterable<ServerEvent | string | any> | Iterable<ServerEvent | string | any> | Readable,
+    stream:
+      | AsyncIterable<ServerEvent | string | any>
+      | Iterable<ServerEvent | string | any>
+      | Readable,
     headers?: Record<string, string | string[]>,
     cookies?: Cookie[],
   );
   constructor(a0: any, b0?: any, c0?: any, d0?: any) {
-    const [status, events, headers, cookies] = typeof a0 === 'number'
-      ? [a0, b0, c0, d0]
-      : [200, a0, b0, c0];
-    const stream = events instanceof Stream ? events as Readable : Readable.from(events);
+    const [status, events, headers, cookies] =
+      typeof a0 === 'number' ? [a0, b0, c0, d0] : [200, a0, b0, c0];
+    const stream = events instanceof Stream ? (events as Readable) : Readable.from(events);
     super(status, stream.pipe(new SSETransform()), headers, cookies);
 
     this.setHeader('Content-Type', 'text/event-stream');

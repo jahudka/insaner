@@ -1,8 +1,9 @@
 import { EventEmitter } from 'events';
 import { AsyncEvent } from './asyncEvent';
+import { AsyncArgs, DefaultEventMap, EventMap, Key } from './types';
 
-export class AsyncEventEmitter extends EventEmitter {
-  async emitAsync(eventName: string, ...args: any[]): Promise<boolean> {
+export class AsyncEventEmitter<T extends EventMap<T> = DefaultEventMap> extends EventEmitter<T> {
+  async emitAsync<K>(eventName: Key<K, T>, ...args: AsyncArgs<K, T>): Promise<boolean> {
     const listeners = this.listeners(eventName);
 
     if (listeners && listeners.length) {
@@ -17,6 +18,7 @@ export class AsyncEventEmitter extends EventEmitter {
 }
 
 async function callAsyncListeners(
+  // oxlint-disable-next-line typescript/no-unsafe-function-type
   listeners: Function[],
   ...args: any[]
 ): Promise<void> {

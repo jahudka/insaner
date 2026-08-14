@@ -1,7 +1,9 @@
 {
-  "name": "insaner-ws",
+  "private": true,
+  "homepage": "https://github.com/jahudka/insaner",
+  "license": "MIT",
   "author": {
-    "name": "Dan Kadera",
+    "name": "Eliška Daniela Kaderová",
     "email": "me@subsonic.cz",
     "url": "https://github.com/jahudka"
   },
@@ -9,11 +11,20 @@
     "type": "git",
     "url": "https://github.com/jahudka/insaner.git"
   },
-  "homepage": "https://github.com/jahudka/insaner",
-  "license": "MIT",
-  "private": true,
-  "workspaces": [
-    "core",
-    "plugins/*"
-  ]
+  "scripts": {
+    ":skip:oxlint": "oxlint --ignore-pattern='core/**' --ignore-pattern='plugins/**'",
+    ":skip:oxlint:fix": "oxlint --fix --ignore-pattern='core/**' --ignore-pattern='plugins/**'",
+    "oxfmt": "oxfmt --check '!core/' '!plugins/' .",
+    "oxfmt:fix": "oxfmt --write '!core/' '!plugins/' .",
+    "lint": "pnpm run '/^(oxlint|oxfmt)$/'",
+    "format": "pnpm run --sequential '/^(oxlint|oxfmt):fix$/'"
+  },
+  "dependencies": {
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "engineStrict": true
 }

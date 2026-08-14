@@ -89,7 +89,12 @@ function normalizeOption(
 ): (request?: string) => string | undefined {
   if (value instanceof RegExp) {
     const pattern = new RegExp(value.source, 'i');
-    return (request) => request?.trim().split(/\s*,\s*/g).filter((v) => pattern.test(v)).join(', ');
+    return (request) =>
+      request
+        ?.trim()
+        .split(/\s*,\s*/g)
+        .filter((v) => pattern.test(v))
+        .join(', ');
   } else if (value === true) {
     return (request) => request;
   } else if (value === undefined) {
@@ -98,10 +103,9 @@ function normalizeOption(
 
   if (single) {
     const values: (string | undefined)[] = typeof value === 'string' ? [value] : value;
-    return (request) => values.includes(request) ? request : undefined;
+    return (request) => (values.includes(request) ? request : undefined);
   }
 
   const values = typeof value === 'string' ? value : value.join(', ');
   return () => values;
 }
-

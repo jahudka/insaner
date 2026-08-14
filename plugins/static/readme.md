@@ -19,7 +19,10 @@ import { resolve } from 'path';
 
 const server = new Server();
 
-server.router.add(new StaticRoute('/images'), new StaticHandler(resolve(__dirname, '../static/images')));
+server.router.add(
+  new StaticRoute('/images'),
+  new StaticHandler(resolve(__dirname, '../static/images')),
+);
 ```
 
 The optional second argument to the `StaticHandler` constructor is an array of

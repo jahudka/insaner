@@ -3,21 +3,21 @@
 This package is an opinionated HTTP server built on top of
 the native NodeJS HTTP server.
 
- - No callbacks! Pure Promise bliss.
- - There is a simple regexp-based router.
- - Response object is _not_ passed into request handlers,
-   instead request handlers are expected to _return_
-   a Response object.
- - Request body consumption and parsing is done on-demand
-   similarly to the `fetch` Response, ie. `await req.text()`
-   and `await req.json()`; consumed raw body is cached, so
-   multiple calls to `req.text()` and `req.json()` are possible
-   (JSON parsing is done each time you call `req.json()` so that
-   you can be sure you get the unmodified data, no matter what
-   your middlewares do).
- - Also, cookies work out of the box.
- - WebSocket compatible.
- - Typings included.
+- No callbacks! Pure Promise bliss.
+- There is a simple regexp-based router.
+- Response object is _not_ passed into request handlers,
+  instead request handlers are expected to _return_
+  a Response object.
+- Request body consumption and parsing is done on-demand
+  similarly to the `fetch` Response, ie. `await req.text()`
+  and `await req.json()`; consumed raw body is cached, so
+  multiple calls to `req.text()` and `req.json()` are possible
+  (JSON parsing is done each time you call `req.json()` so that
+  you can be sure you get the unmodified data, no matter what
+  your middlewares do).
+- Also, cookies work out of the box.
+- WebSocket compatible.
+- Typings included.
 
 ## Installation
 
@@ -38,9 +38,7 @@ server.router.get(
   async (req: HttpRequest, { resource, id }: Record<string, string>) => {
     const controller = await di.get(`controller.rest.${resource}`);
 
-    return id
-      ? controller.get(id)
-      : controller.list(req.url.searchParams); // req.url is an URL object
+    return id ? controller.get(id) : controller.list(req.url.searchParams); // req.url is an URL object
   },
 );
 
@@ -50,9 +48,7 @@ server.router.post(
   async (req: HttpRequest, { resource, id }: Record<string, string>) => {
     const controller = await di.get(`controller.rest.${resource}`);
 
-    return id
-      ? controller.update(id, await req.json())
-      : controller.create(await req.json());
+    return id ? controller.update(id, await req.json()) : controller.create(await req.json());
   },
 );
 
@@ -78,8 +74,8 @@ server.on('request', async (req) => {
 });
 
 (async () => {
-    await server.listen(8000);
-    console.log('Server is listening.');
+  await server.listen(8000);
+  console.log('Server is listening.');
 })();
 ```
 

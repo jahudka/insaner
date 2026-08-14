@@ -67,9 +67,12 @@ export class FileResponse extends HttpResponse {
       return info.size;
     } catch (e: any) {
       switch (e.code) {
-        case 'EACCES': return -403;
-        case 'ENOENT': return -404;
-        default: throw e;
+        case 'EACCES':
+          return -403;
+        case 'ENOENT':
+          return -404;
+        default:
+          throw e;
       }
     }
   }

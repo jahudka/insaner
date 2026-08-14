@@ -71,7 +71,11 @@ export class HttpResponse {
 
   setCookie(cookie: Cookie): void;
   setCookie(name: string, value: string, options?: CookieOptions): void;
-  setCookie(cookieOrName: Cookie | string, maybeValue?: string, maybeOptions?: CookieOptions): void {
+  setCookie(
+    cookieOrName: Cookie | string,
+    maybeValue?: string,
+    maybeOptions?: CookieOptions,
+  ): void {
     if (typeof cookieOrName === 'string') {
       this._cookies[cookieOrName] = new Cookie(cookieOrName, maybeValue!, maybeOptions);
     } else {
@@ -90,7 +94,10 @@ export class HttpResponse {
   async send(serverResponse: ServerResponse, request: HttpRequest): Promise<void> {
     serverResponse.statusCode = this.status;
 
-    this.addHeader('Set-Cookie', this.cookies.map(cookie => cookie.toString()));
+    this.addHeader(
+      'Set-Cookie',
+      this.cookies.map((cookie) => cookie.toString()),
+    );
 
     for (const [header, values] of Object.entries(this._headers)) {
       serverResponse.setHeader(header, values);

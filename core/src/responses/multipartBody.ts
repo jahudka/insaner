@@ -1,14 +1,17 @@
 import { Readable, Writable } from 'stream';
-import { v4 } from 'uuid';
 
 export class MultipartBody {
-  readonly boundary: string = v4().replace(/-/g, '');
+  readonly boundary: string = crypto.randomUUID().replace(/-/g, '');
 
   private readonly parts: MultipartBodyPart[] = [];
 
   add(part: MultipartBodyPart): MultipartBodyPart;
   add(content: Readable | Buffer | string, type: string, length?: number): MultipartBodyPart;
-  add(part: MultipartBodyPart | Readable | Buffer | string, type?: string, length?: number): MultipartBodyPart {
+  add(
+    part: MultipartBodyPart | Readable | Buffer | string,
+    type?: string,
+    length?: number,
+  ): MultipartBodyPart {
     if (!(part instanceof MultipartBodyPart)) {
       part = new MultipartBodyPart(part, type ?? 'text/plain', length);
     }
@@ -30,7 +33,9 @@ export class MultipartBody {
   }
 
   private async writeTo(dst: Writable, chunk: any): Promise<void> {
-    return new Promise((resolve, reject) => dst.write(chunk, (err) => err ? reject(err) : resolve()));
+    return new Promise((resolve, reject) =>
+      dst.write(chunk, (err) => (err ? reject(err) : resolve())),
+    );
   }
 }
 
@@ -65,7 +70,7 @@ export class MultipartBodyPart {
     if (Buffer.isBuffer(this._content) || typeof this._content === 'string') {
       yield this._content;
     } else {
-      yield * this._content;
+      yield* this._content;
     }
   }
 }
