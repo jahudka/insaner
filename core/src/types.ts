@@ -20,3 +20,5 @@ export type ServerMiddlewareHandler = {
 export interface ServerMiddleware {
   handle(next: ServerMiddlewareNext): Promise<void> | void;
 }
+
+export type ListenOptions = { host?: string; port: number } | { path: string };

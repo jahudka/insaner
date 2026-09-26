@@ -6,6 +6,7 @@ import { HttpRequest } from './httpRequest';
 import { HttpResponse } from './httpResponse';
 import { Router } from './routing';
 import {
+  ListenOptions,
   RequestMiddleware,
   RequestMiddlewareHandler,
   RequestMiddlewareNext,
@@ -56,7 +57,17 @@ export class HttpServer extends AsyncEventEmitter<HttpServerEvents> {
     }
   }
 
-  async listen(port: number | string): Promise<void> {
+  async listen(path: string): Promise<void>;
+  async listen(port: number, host?: string): Promise<void>;
+  async listen(options: ListenOptions): Promise<void>;
+  async listen(on: ListenOptions | number | string, maybeHost?: string): Promise<void> {
+    const options =
+      typeof on === 'string'
+        ? { path: on }
+        : typeof on === 'number'
+          ? { port: on, host: maybeHost }
+          : on;
+
     return new Promise((resolve) => {
       this.server.on('error', (err) => this.emit('error', err));
       this.server.on('request', (req, res) => this.handleRequest(req, res));
@@ -64,7 +75,11 @@ export class HttpServer extends AsyncEventEmitter<HttpServerEvents> {
         await this.emitAsync('upgrade', new HttpRequest(req), socket, head);
       });
 
-      this.server.listen(port, resolve);
+      if ('path' in options) {
+        this.server.listen(options.path, resolve);
+      } else {
+        this.server.listen(options.port, options.host, resolve);
+      }
     });
   }
 
