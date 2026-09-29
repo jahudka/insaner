@@ -68,23 +68,35 @@ export class HttpServer extends AsyncEventEmitter<HttpServerEvents> {
           ? { port: on, host: maybeHost }
           : on;
 
-    return new Promise((resolve) => {
-      this.server.on('error', (err) => this.emit('error', err));
-      this.server.on('request', (req, res) => this.handleRequest(req, res));
-      this.server.on('upgrade', async (req, socket, head) => {
-        await this.emitAsync('upgrade', new HttpRequest(req), socket, head);
-      });
+    const { promise, resolve, reject } = Promise.withResolvers<void>();
+
+    try {
+      this.server.on('listening', resolve);
+      this.server.on('error', reject);
 
       if ('path' in options) {
-        this.server.listen(options.path, resolve);
+        this.server.listen(options.path);
       } else {
-        this.server.listen(options.port, options.host, resolve);
+        this.server.listen(options.port, options.host);
       }
+
+      await promise;
+    } finally {
+      this.server.off('listening', resolve);
+      this.server.off('error', reject);
+    }
+
+    this.server.on('error', (err) => this.emit('error', err));
+    this.server.on('request', (req, res) => this.handleRequest(req, res));
+    this.server.on('upgrade', async (req, socket, head) => {
+      await this.emitAsync('upgrade', new HttpRequest(req), socket, head);
     });
   }
 
   async close(): Promise<void> {
     return new Promise((resolve, reject) => {
+      this.server.removeAllListeners();
+
       this.server.close((err) => {
         if (err) {
           reject(err);
